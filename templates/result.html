@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Add your existing head content here -->
+</head>
+<body>
+    <h1>Wave Analysis Result</h1>
+    {% for table in tables %}
+        {{ table|safe }}
+    {% endfor %}
+
+    <!-- Display the chart image -->
+    <img src="{{ chart_image }}" alt="Wave Height Chart" />
+</body>
+</html>
