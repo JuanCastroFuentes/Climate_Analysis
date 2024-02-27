@@ -1,7 +1,5 @@
 import pandas as pd
-from libs.openmeteo import MarineOpenMeteoClient
-from sqlalchemy import create_engine
-import pyodbc
+from utils.openmeteo import MarineOpenMeteoClient
 import sqlite3
 
 # Define Spots
@@ -13,8 +11,8 @@ spots = {
 def main():
     open_meteo_client = MarineOpenMeteoClient()
 
-    # Replace the path with the correct path to your SQLite database file
-    database_path = r"C:\Users\juanm\OneDrive\Documents\CODER DATA ANALYTICS\GitHub\Climate_Analysis\DATA_BASES\WAVE_ANALYSIS.db"
+    # path to Sqlite database
+    database_path = r"C:\Users\juanm\OneDrive\Documents\CODER DATA ANALYTICS\DATABASES\DATA_BASES\WAVE_ANALYSIS.db"
 
     # Connect to the SQLite database
     conn = sqlite3.connect(database_path)

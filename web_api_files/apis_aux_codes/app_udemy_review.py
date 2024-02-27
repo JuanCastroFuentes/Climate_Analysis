@@ -1,4 +1,4 @@
-from libs.openexchange import OpenExchangeClient
+from utils.openexchange import OpenExchangeClient
 import requests
 
 APP_ID = "a6f3de885eb847b795bd980d06e2873f"
