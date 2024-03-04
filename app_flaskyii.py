@@ -4,6 +4,7 @@ import sqlite3
 import matplotlib.pyplot as plt
 import io
 import base64
+from utils.openmeteo import MarineOpenMeteoClient, WindOpenMeteoClient
 
 app = Flask(__name__)
 
@@ -13,7 +14,7 @@ spots = {
     "norte": (-38.0, -57.0)
 }
 
-# Replace the path with the correct path to your SQLite database file
+# SQLite database path file
 database_path = r"C:\Users\juanm\OneDrive\Documents\CODER DATA ANALYTICS\DATABASES\DATA_BASES\WAVE_ANALYSIS.db"
 
 def get_db():
@@ -27,11 +28,10 @@ def close_db(e=None):
     if db is not None:
         db.close()
 
-def fetch_wave_data(spot_name):
+def fetch_data_from_db(table_name, columns):
     # Fetch data from the SQLite database
     cursor = get_db().cursor()
-    table_name = f'WaveData_{spot_name}'
-    query = f'SELECT * FROM {table_name};'
+    query = f'SELECT time, {", ".join(columns)} FROM {table_name};'
     df = pd.read_sql_query(query, get_db())
     return df
 
@@ -57,7 +57,6 @@ def generate_chart(df):
 
     return f"data:image/png;base64,{encoded_image}"
 
-
 @app.before_request
 def before_request():
     g.db = get_db()
@@ -79,9 +78,38 @@ def home():
 def query():
     if request.method == 'POST':
         spot_name = request.form['spot']
-        result_df = fetch_wave_data(spot_name)
-        chart_image = generate_chart(result_df)
-        return render_template('result.html', tables=[result_df.to_html(classes='data')], chart_image=chart_image)
+
+        # Fetch data from the OpenMeteo API
+        marine_client = MarineOpenMeteoClient()
+        wind_client = WindOpenMeteoClient()
+
+        wave_data = marine_client.latest(*spots[spot_name]).json()
+        wind_data = wind_client.latest(*spots[spot_name]).json()
+
+        # Insert data into the database
+        wave_table_name = f'WaveData_{spot_name}'
+        wind_table_name = f'WindData_{spot_name}'
+
+        print(wave_data)
+        wave_data_pd = pd.DataFrame(wave_data)
+        wind_data_pd = pd.DataFrame(wind_data)
+        print(wave_data_pd.head())
+        print(wave_data_pd.info())
+        print(wave_data_pd.describe())
+
+        wave_data_pd.to_sql(wave_table_name, get_db(), index=False, if_exists='replace')
+        wind_data_pd.to_sql(wind_table_name, get_db(), index=False, if_exists='replace')
+
+        # Fetch only the necessary columns from the database
+        wave_columns = ["time", "wave_height_max", "wave_direction_dominant"]
+        wind_columns = ["time", "wind_speed_10m_max", "wind_direction_10m_dominant"]
+
+        wave_result_df = fetch_data_from_db(wave_table_name, wave_columns)
+        wind_result_df = fetch_data_from_db(wind_table_name, wind_columns)
+
+        chart_image = generate_chart(wave_result_df)
+
+        return render_template('result.html', tables=[wave_result_df.to_html(classes='data'), wind_result_df.to_html(classes='data')], chart_image=chart_image)
 
     return render_template('query.html', spots=spots.keys())
 
