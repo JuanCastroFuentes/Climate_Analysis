@@ -1,5 +1,6 @@
 import pandas as pd
-from libs.openmeteo import MarineOpenMeteoClient
+from utils.openmeteo import MarineOpenMeteoClient
+import sqlite3
 
 # Define Spots
 spots = {
@@ -10,36 +11,36 @@ spots = {
 def main():
     open_meteo_client = MarineOpenMeteoClient()
 
-    print("Select a spot:")
-    for index, spot_name in enumerate(spots.keys(), 1):
-        print(f"{index}. {spot_name}")
+    # path to Sqlite database
+    database_path = r"C:\Users\juanm\OneDrive\Documents\CODER DATA ANALYTICS\DATABASES\DATA_BASES\WAVE_ANALYSIS.db"
 
-    try:
-        choice = int(input("Enter the spot number: "))
-        if 1 <= choice <= len(spots):
-            spot_name = list(spots.keys())[choice - 1]
-            latitude, longitude = spots[spot_name]
-            api_response = open_meteo_client.latest(latitude, longitude)
-            
-            # Extract JSON content from the response
-            api_json = api_response.json()
-            print(api_json)  # Print the JSON content
+    # Connect to the SQLite database
+    conn = sqlite3.connect(database_path)
 
-            # Extract data from the API response
-            data = {}
-            for key, value in api_json['daily'].items():
-                data[key] = value
+    # Create a cursor
+    cursor = conn.cursor()
 
-            # Create a DataFrame
-            df = pd.DataFrame(data)
+    # Loop through each spot
+    for spot_name, (latitude, longitude) in spots.items():
+        api_response = open_meteo_client.latest(latitude, longitude)
 
-            # Print the DataFrame
-            print(df.head())
-        else:
-            print("Invalid choice.")
-    except ValueError:
-        print("Invalid input. Please enter a number.")
+        # Extract JSON content from the response
+        api_json = api_response.json()
+
+        # Extract data from the API response
+        data = {}
+        for key, value in api_json['daily'].items():
+            data[key] = value
+
+        # Create a DataFrame for the current spot
+        df = pd.DataFrame(data)
+
+        # Add a new column indicating the spot
+        df['spot'] = spot_name
+
+        # Export the DataFrame to a table in SQL Server
+        table_name = f'WaveData_{spot_name}'
+        df.to_sql(name=table_name, con=sqlite3.connect(database_path), if_exists='replace', index=False)
 
 if __name__ == "__main__":
     main()
-

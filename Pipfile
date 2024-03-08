@@ -11,6 +11,9 @@ numpy = "*"
 pandas = "*"
 pyarrow = "*"
 requests = "*"
+sqlalchemy = "*"
+pyodbc = "*"
+flask = "*"
 
 [dev-packages]
 
