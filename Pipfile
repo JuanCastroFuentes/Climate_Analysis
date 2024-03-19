@@ -14,6 +14,7 @@ requests = "*"
 sqlalchemy = "*"
 pyodbc = "*"
 flask = "*"
+matplotlib = "*"
 
 [dev-packages]
 

@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wave Data Query</title>
+</head>
+<body>
+    <h1>Wave Data Query</h1>
+    <form method="post" action="/query">
+        <label for="spot">Select Spot:</label>
+        <select id="spot" name="spot">
+            {% for spot in spots %}
+                <option value="{{ spot }}">{{ spot }}</option>
+            {% endfor %}
+        </select>
+        <br>
+        <input type="submit" value="Fetch Wave Data">
+    </form>
+</body>
+</html>
